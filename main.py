@@ -1,6 +1,7 @@
 import re
-import yaml
 
+import pandas as pd
+import yaml
 from playwright.sync_api import sync_playwright
 
 ORGANISERS_FILE = "organisers.yml"
@@ -92,12 +93,12 @@ def get_event_details(page, url: str) -> dict:
         }
 
 
-def get_events_from_fb(url: str) -> list[dict]:
+def get_events_from_fb(organiser: dict) -> list[dict]:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
         page = browser.new_page()
 
-        page.goto(url, wait_until="domcontentloaded")
+        page.goto(organiser["url"], wait_until="domcontentloaded")
         page.wait_for_timeout(500)
 
         reject_cookies(page)
@@ -112,27 +113,32 @@ def get_events_from_fb(url: str) -> list[dict]:
             text = link.inner_text().strip()
             href = link.get_attribute("href")
 
-            if text and href and "/events/" in href:
+            if "quiz" in text.lower() and href and "/events/" in href:
                 events.append(
                     {
+                        "organiser": organiser["name"],
                         "title": text,
                         "url": href,
                     }
                 )
 
+        event_details = []
+
         for event in events:
             details = get_event_details(page, event["url"])
-            print(details)
 
-        input("Press Enter to close...")
+            if details:
+                details["organiser"] = organiser["name"]
+                event_details.append(details)
 
         browser.close()
 
-    return events
+    return event_details
 
 
 if __name__ == "__main__":
     organisers = load_organisers(ORGANISERS_FILE)
+    all_events = []
 
     for organiser in organisers:
         print(f"\n{'='*64}")
@@ -140,4 +146,8 @@ if __name__ == "__main__":
         print(f"\n{'='*64}")
 
         if organiser["type"] == "FB":
-            events = get_events_from_fb(organiser["url"])
+            events = get_events_from_fb(organiser)
+            all_events.extend(events)
+
+    df = pd.DataFrame(all_events)
+    df.to_csv("test.csv")
