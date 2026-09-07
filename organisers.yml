@@ -1,0 +1,12 @@
+organisers:
+- name: Patryk
+  url: https://www.facebook.com/profile.php?id=61571422931186&sk=events
+  type: FB
+
+- name: Cybermachina
+  url: https://www.facebook.com/profile.php?id=100063556272130&sk=events
+  type: FB
+
+- name: Pubquiz Kraków
+  url: https://www.facebook.com/pubquizkrakow/events
+  type: FB
