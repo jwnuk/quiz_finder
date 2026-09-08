@@ -44,9 +44,27 @@ def close_login_popup(page) -> None:
         page.wait_for_timeout(200)
 
 
+def load_all_events(page) -> None:
+    previous_count = 0
+    stable_rounds = 0
+
+    while stable_rounds < 5:
+        page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+        page.wait_for_timeout(1000)
+
+        current_count = page.locator("a[href*='/events/']").count()
+
+        if current_count == previous_count:
+            stable_rounds += 1
+        else:
+            stable_rounds = 0
+
+        previous_count = current_count
+
+
 def get_event_details(page, url: str) -> dict:
     page.goto(url, wait_until="domcontentloaded")
-    page.wait_for_timeout(200)
+    page.wait_for_timeout(500)
     close_login_popup(page)
 
     print("Event title:", page.title())
@@ -126,6 +144,8 @@ def get_events_from_fb(organiser: dict) -> list[dict]:
         reject_cookies(page)
         close_login_popup(page)
 
+        load_all_events(page)
+
         links = page.locator("a")
 
         events = []
@@ -159,6 +179,9 @@ def get_events_from_fb(organiser: dict) -> list[dict]:
 
 
 def parse_date(date_str: str) -> pd.Timestamp:
+    if pd.isna(date_str):
+        return pd.NaT
+
     match = re.search(r"(\d{1,2}) (\w+) (\d{4}) o (\d{1,2}:\d{2})", date_str)
 
     if not match:
@@ -183,7 +206,12 @@ if __name__ == "__main__":
             all_events.extend(events)
 
     df = pd.DataFrame(all_events)
+
     df["Data"] = df["Data"].apply(parse_date)
+
+    df = df.sort_values("URL", key=lambda x: x.str.len())
+    df = df.drop_duplicates(subset=["Data", "Tytuł", "Lokalizacja"], keep="first")
+
     df.sort_values(["Data", "Organizator"], ascending=[True, True]).to_csv(
         "events.csv", index=False
     )
