@@ -150,4 +150,6 @@ if __name__ == "__main__":
             all_events.extend(events)
 
     df = pd.DataFrame(all_events)
-    df.to_csv("test.csv")
+    df.sort_values(["date_time", "organiser"], ascending=[True, True]).to_csv(
+        "test.csv"
+    )

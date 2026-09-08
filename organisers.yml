@@ -1,5 +1,5 @@
 organisers:
-- name: Patryk
+- name: Quizy Patryka
   url: https://www.facebook.com/profile.php?id=61571422931186&sk=events
   type: FB
 
@@ -9,4 +9,12 @@ organisers:
 
 - name: Pubquiz Kraków
   url: https://www.facebook.com/pubquizkrakow/events
+  type: FB
+
+- name: Quizy w Krakowie
+  url: https://www.facebook.com/profile.php?id=61553708523856&sk=events
+  type: FB
+
+- name: SOHO
+  url: https://www.facebook.com/sohobracka4/events
   type: FB
