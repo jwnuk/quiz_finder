@@ -5,6 +5,20 @@ import yaml
 from playwright.sync_api import sync_playwright
 
 ORGANISERS_FILE = "organisers.yml"
+MONTHS_PL = {
+    "stycznia": "January",
+    "lutego": "February",
+    "marca": "March",
+    "kwietnia": "April",
+    "maja": "May",
+    "czerwca": "June",
+    "lipca": "July",
+    "sierpnia": "August",
+    "września": "September",
+    "października": "October",
+    "listopada": "November",
+    "grudnia": "December",
+}
 
 
 def load_organisers(path: str) -> list[dict]:
@@ -19,7 +33,7 @@ def reject_cookies(page) -> None:
 
     if button.is_visible():
         button.click()
-        page.wait_for_timeout(500)
+        page.wait_for_timeout(200)
 
 
 def close_login_popup(page) -> None:
@@ -27,7 +41,7 @@ def close_login_popup(page) -> None:
 
     if close_button.is_visible():
         close_button.click()
-        page.wait_for_timeout(500)
+        page.wait_for_timeout(200)
 
 
 def get_event_details(page, url: str) -> dict:
@@ -45,15 +59,18 @@ def get_event_details(page, url: str) -> dict:
 
     if event_header.count():
         sections = event_header.locator(":scope > div > div")
+        weekday, date_time = sections.nth(0).inner_text().split(",")
         title_clean = " ".join(
             line.strip() for line in sections.nth(1).inner_text().split("\n")
         )
+        location = sections.nth(2).inner_text()
 
         return {
-            "date_time": sections.nth(0).inner_text(),
-            "title": title_clean,
-            "location": sections.nth(2).inner_text(),
-            "url": url,
+            "Data": date_time,
+            "Dzień tygodnia": weekday,
+            "Tytuł": title_clean,
+            "Lokalizacja": location,
+            "URL": url,
         }
 
     else:
@@ -75,21 +92,23 @@ def get_event_details(page, url: str) -> dict:
 
         if date_index is None:
             return {
-                "date_time": None,
-                "title": None,
-                "location": None,
-                "url": page.url,
+                "Data": None,
+                "Dzień tygodnia": None,
+                "Tytuł": None,
+                "Lokalizacja": None,
+                "URL": page.url,
             }
 
-        date_time = lines[date_index]
+        weekday, date_time = lines[date_index].split(",")
         title = lines[date_index + 1]
-        location = lines[date_index + 3]
+        location = lines[date_index + 2]
 
         return {
-            "date_time": date_time,
-            "title": title,
-            "location": location,
-            "url": page.url,
+            "Data": date_time,
+            "Dzień tygodnia": weekday,
+            "Tytuł": title,
+            "Lokalizacja": location,
+            "URL": page.url,
         }
 
 
@@ -99,7 +118,7 @@ def get_events_from_fb(organiser: dict) -> list[dict]:
         page = browser.new_page()
 
         page.goto(organiser["url"], wait_until="domcontentloaded")
-        page.wait_for_timeout(500)
+        page.wait_for_timeout(200)
 
         reject_cookies(page)
         close_login_popup(page)
@@ -128,12 +147,24 @@ def get_events_from_fb(organiser: dict) -> list[dict]:
             details = get_event_details(page, event["url"])
 
             if details:
-                details["organiser"] = organiser["name"]
+                details["Organizator"] = organiser["name"]
                 event_details.append(details)
 
         browser.close()
 
     return event_details
+
+
+def parse_date(date_str: str) -> pd.Timestamp:
+    match = re.search(r"(\d{1,2}) (\w+) (\d{4}) o (\d{1,2}:\d{2})", date_str)
+
+    if not match:
+        return pd.NaT
+
+    day, month, year, time = match.groups()
+    month = MONTHS_PL[month]
+
+    return pd.to_datetime(f"{day} {month} {year} {time}")
 
 
 if __name__ == "__main__":
@@ -143,13 +174,13 @@ if __name__ == "__main__":
     for organiser in organisers:
         print(f"\n{'='*64}")
         print(f"Organiser: {organiser['name']}")
-        print(f"\n{'='*64}")
 
         if organiser["type"] == "FB":
             events = get_events_from_fb(organiser)
             all_events.extend(events)
 
     df = pd.DataFrame(all_events)
-    df.sort_values(["date_time", "organiser"], ascending=[True, True]).to_csv(
-        "test.csv"
+    df["Data"] = df["Data"].apply(parse_date)
+    df.sort_values(["Data", "Organizator"], ascending=[True, True]).to_csv(
+        "test.csv", index=False
     )
