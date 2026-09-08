@@ -54,7 +54,10 @@ def get_event_details(page, url: str) -> dict:
 
     event_header = page.get_by_role(
         "button",
-        name=re.compile(r"^\w+, \d+ .* o \d+:\d+"),
+        name=re.compile(
+            r"^(Poniedziałek|Wtorek|Środa|Czwartek|Piątek|Sobota|Niedziela), "
+            r"\d{1,2} .* o \d{1,2}:\d{2}"
+        ),
     )
 
     if event_header.count():
@@ -182,5 +185,5 @@ if __name__ == "__main__":
     df = pd.DataFrame(all_events)
     df["Data"] = df["Data"].apply(parse_date)
     df.sort_values(["Data", "Organizator"], ascending=[True, True]).to_csv(
-        "test.csv", index=False
+        "events.csv", index=False
     )
