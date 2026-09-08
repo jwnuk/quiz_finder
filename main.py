@@ -205,13 +205,19 @@ if __name__ == "__main__":
             events = get_events_from_fb(organiser)
             all_events.extend(events)
 
-    df = pd.DataFrame(all_events)
+    column_order = [
+        "Data",
+        "Dzień tygodnia",
+        "Organizator",
+        "Tytuł",
+        "Lokalizacja",
+        "URL",
+    ]
+    df = pd.DataFrame(all_events, columns=column_order)
 
     df["Data"] = df["Data"].apply(parse_date)
 
     df = df.sort_values("URL", key=lambda x: x.str.len())
     df = df.drop_duplicates(subset=["Data", "Tytuł", "Lokalizacja"], keep="first")
 
-    df.sort_values(["Data", "Organizator"], ascending=[True, True]).to_csv(
-        "events.csv", index=False
-    )
+    df.sort_values(["Data", "Organizator", "Tytuł"]).to_csv("events.csv", index=False)
