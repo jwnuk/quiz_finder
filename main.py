@@ -2,7 +2,7 @@ import re
 
 import pandas as pd
 import yaml
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import TimeoutError, sync_playwright
 
 ORGANISERS_FILE = "organisers.yml"
 MONTHS_PL = {
@@ -60,6 +60,29 @@ def load_all_events(page) -> None:
             stable_rounds = 0
 
         previous_count = current_count
+
+
+def load_all_group_events(page) -> None:
+    upcoming_heading = page.get_by_role("heading", name="Nadchodzące wydarzenia")
+    upcoming_section = upcoming_heading.locator(
+        "xpath=ancestor::div[.//div[@role='button' and @aria-label='Zobacz więcej wydarzeń grupowych']][1]"
+    )
+
+    while True:
+        load_more_button = upcoming_section.get_by_role(
+            "button", name="Zobacz więcej wydarzeń grupowych"
+        ).filter(visible=True)
+
+        if load_more_button.count() == 0:
+            return
+
+        try:
+            load_more_button.first.click(timeout=1000)
+        except TimeoutError:
+            print("Could not load more events.")
+            return
+
+        page.wait_for_timeout(1000)
 
 
 def get_event_details(page, url: str) -> dict:
@@ -144,7 +167,10 @@ def get_events_from_fb(organiser: dict, is_group: bool = False) -> list[dict]:
         reject_cookies(page)
         close_login_popup(page)
 
-        load_all_events(page)
+        if is_group:
+            load_all_group_events(page)
+        else:
+            load_all_events(page)
 
         links = page.locator("a")
 
@@ -200,6 +226,7 @@ if __name__ == "__main__":
     for organiser in organisers:
         print(f"\n{'='*64}")
         print(f"Organiser: {organiser['name']}")
+        src_type = organiser["type"]
 
         if src_type in ["FB page", "FB group"]:
             events = get_events_from_fb(organiser, is_group=src_type == "FB group")
