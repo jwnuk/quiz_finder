@@ -133,7 +133,7 @@ def get_event_details(page, url: str) -> dict:
         }
 
 
-def get_events_from_fb(organiser: dict) -> list[dict]:
+def get_events_from_fb(organiser: dict, is_group: bool = False) -> list[dict]:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
         page = browser.new_page()
@@ -201,8 +201,8 @@ if __name__ == "__main__":
         print(f"\n{'='*64}")
         print(f"Organiser: {organiser['name']}")
 
-        if organiser["type"] == "FB":
-            events = get_events_from_fb(organiser)
+        if src_type in ["FB page", "FB group"]:
+            events = get_events_from_fb(organiser, is_group=src_type == "FB group")
             all_events.extend(events)
 
     column_order = [

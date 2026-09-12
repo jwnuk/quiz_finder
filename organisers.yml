@@ -1,20 +1,24 @@
 organisers:
 - name: Quizy Patryka
   url: https://www.facebook.com/profile.php?id=61571422931186&sk=events
-  type: FB
+  type: FB page
 
 - name: Cybermachina
   url: https://www.facebook.com/profile.php?id=100063556272130&sk=events
-  type: FB
+  type: FB page
 
 - name: Pubquiz Kraków
   url: https://www.facebook.com/pubquizkrakow/events
-  type: FB
+  type: FB page
 
 - name: Quizy w Krakowie
   url: https://www.facebook.com/profile.php?id=61553708523856&sk=events
-  type: FB
+  type: FB page
+
+- name: Quizuj z Kubą
+  url: https://www.facebook.com/groups/1883981872522765/events
+  type: FB group
 
 - name: SOHO
   url: https://www.facebook.com/sohobracka4/events
-  type: FB
+  type: FB page
