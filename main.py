@@ -1,3 +1,4 @@
+import datetime
 import re
 
 import pandas as pd
@@ -246,5 +247,6 @@ if __name__ == "__main__":
 
     df = df.sort_values("URL", key=lambda x: x.str.len())
     df = df.drop_duplicates(subset=["Data", "Tytuł", "Lokalizacja"], keep="first")
+    df = df[df["Data"] >= datetime.datetime.today()]
 
     df.sort_values(["Data", "Organizator", "Tytuł"]).to_csv("events.csv", index=False)
