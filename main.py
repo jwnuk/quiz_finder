@@ -183,11 +183,12 @@ def get_events_from_fb(organiser: dict, is_group: bool = False) -> list[dict]:
             href = link.get_attribute("href")
 
             if "quiz" in text.lower() and href and "/events/" in href:
+                href_clean = href.split("?")[0]
                 events.append(
                     {
                         "organiser": organiser["name"],
                         "title": text,
-                        "url": href,
+                        "url": href_clean,
                     }
                 )
 
