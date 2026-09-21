@@ -115,6 +115,8 @@ def get_event_details(page, url: str) -> dict:
         )
         location = sections.nth(2).inner_text()
 
+        print("if event_header.count() returned True")
+
         return {
             "Data": date_time,
             "Dzień tygodnia": weekday,
@@ -143,6 +145,7 @@ def get_event_details(page, url: str) -> dict:
         )
 
         if date_index is None:
+            print("date_index is None")
             return {
                 "Data": None,
                 "Dzień tygodnia": None,
@@ -155,6 +158,7 @@ def get_event_details(page, url: str) -> dict:
         title = lines[date_index + 1]
         location = lines[date_index + 2]
 
+        print("if event_header.count() returned False (else statement)")
         return {
             "Data": date_time,
             "Dzień tygodnia": weekday,
@@ -209,6 +213,7 @@ def get_events_from_fb(organiser: dict, is_group: bool = False) -> list[dict]:
                 event_details.append(details)
             # break
 
+            print(details)
         browser.close()
 
     return event_details
