@@ -104,6 +104,11 @@ def get_event_details(page, url: str) -> dict:
 
     if event_header.count():
         sections = event_header.locator(":scope > div > div")
+        # for i in range(sections.count()):
+        #     print(sections.nth(i))
+        #     print(sections.nth(i).inner_text())
+        # print("+" * 24)
+
         weekday, date_time = sections.nth(0).inner_text().split(",")
         title_clean = " ".join(
             line.strip() for line in sections.nth(1).inner_text().split("\n")
@@ -124,6 +129,8 @@ def get_event_details(page, url: str) -> dict:
             for line in page.locator("body").inner_text().splitlines()
             if line.strip()
         ]
+        # print(lines)
+        # print("+" * 24)
 
         date_pattern = re.compile(
             r"^(Poniedziałek|Wtorek|Środa|Czwartek|Piątek|Sobota|Niedziela), "
@@ -159,7 +166,7 @@ def get_event_details(page, url: str) -> dict:
 
 def get_events_from_fb(organiser: dict, is_group: bool = False) -> list[dict]:
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
 
         page.goto(organiser["url"], wait_until="domcontentloaded")
@@ -200,6 +207,7 @@ def get_events_from_fb(organiser: dict, is_group: bool = False) -> list[dict]:
             if details:
                 details["Organizator"] = organiser["name"]
                 event_details.append(details)
+            # break
 
         browser.close()
 
@@ -233,6 +241,7 @@ if __name__ == "__main__":
         if src_type in ["FB page", "FB group"]:
             events = get_events_from_fb(organiser, is_group=src_type == "FB group")
             all_events.extend(events)
+        # break
 
     column_order = [
         "Data",
