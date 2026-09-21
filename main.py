@@ -252,11 +252,14 @@ if __name__ == "__main__":
         "URL",
     ]
     df = pd.DataFrame(all_events, columns=column_order)
-
+    print(f"Non-empty dates before parsing: {df['Data'].notna().sum()}")
     df["Data"] = df["Data"].apply(parse_date)
+    print(f"Non-empty dates after parsing: {df['Data'].notna().sum()}")
 
     df = df.sort_values("URL", key=lambda x: x.str.len())
     df = df.drop_duplicates(subset=["Data", "Tytuł", "Lokalizacja"], keep="first")
+    print("Events before filtering:", len(df))
     df = df[df["Data"] >= datetime.datetime.today()]
+    print("Events after filtering:", len(df))
 
     df.sort_values(["Data", "Organizator", "Tytuł"]).to_csv("events.csv", index=False)
