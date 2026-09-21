@@ -171,7 +171,8 @@ def get_event_details(page, url: str) -> dict:
 def get_events_from_fb(organiser: dict, is_group: bool = False) -> list[dict]:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
+        context = browser.new_context(locale="pl-PL", timezone_id="Europe/Warsaw")
+        page = context.new_page()
 
         page.goto(organiser["url"], wait_until="domcontentloaded")
         page.wait_for_timeout(200)
